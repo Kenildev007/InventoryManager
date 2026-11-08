@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Inventory Console</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%232563eb'/><path d='M8 12l8-4 8 4v9l-8 4-8-4z' fill='none' stroke='white' stroke-width='2'/></svg>">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div class="app" id="app">
+  <!-- ───────── Sidebar ───────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 7l9-4 9 4v10l-9 4-9-4z M3 7l9 4 9-4 M12 11v10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+      </div>
+      <div><b>Inventory</b><small>Data console</small></div>
+    </div>
+    <nav class="nav" id="nav">
+      <a data-view="overview" class="active"><svg viewBox="0 0 24 24"><path d="M3 3h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 13h8v8H3z"/></svg>Overview</a>
+      <a data-view="table"><svg viewBox="0 0 24 24"><path d="M3 4h18v16H3zM3 9h18M3 14h18M9 4v16"/></svg>Data table</a>
+      <a data-view="bookings" data-profile="booking"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h7"/></svg>Bookings</a>
+      <a data-view="voyages" data-profile="booking"><svg viewBox="0 0 24 24"><path d="M3 17l2 4h14l2-4zM6 17V9h12v8M9 9V5h6v4M12 2v3"/></svg>Voyages</a>
+      <a data-view="pivot"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Pivot</a>
+      <a data-view="sources"><svg viewBox="0 0 24 24"><path d="M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>Data sources</a>
+    </nav>
+    <div class="ds-info" id="dsInfo"></div>
+  </aside>
+  <div class="scrim" id="scrim"></div>
+
+  <!-- ───────── Main ───────── -->
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn mobile-only" id="menuBtn" aria-label="Menu">
+        <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <div class="search">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+        <input id="search" type="search" placeholder="Search all fields…  try  pod:jakarta  or  OOLU" autocomplete="off">
+        <kbd>/</kbd>
+      </div>
+      <button class="btn" id="filterBtn">
+        <svg viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></svg>
+        <span class="hide-sm">Filters</span><span class="badge" id="filterCount" hidden></span>
+      </button>
+      <button class="btn hide-sm" id="refreshBtn" hidden title="Re-fetch Google Sheet">
+        <svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>Refresh
+      </button>
+      <div class="dropdown">
+        <button class="btn" id="exportBtn"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg><span class="hide-sm">Export</span></button>
+        <div class="dropdown-menu" id="exportMenu">
+          <button data-export="csv">Filtered rows → CSV</button>
+          <button data-export="xlsx">Filtered rows → Excel</button>
+        </div>
+      </div>
+      <button class="icon-btn" id="themeBtn" aria-label="Toggle theme">
+        <svg viewBox="0 0 24 24"><path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z"/></svg>
+      </button>
+    </header>
+
+    <div class="chips" id="chips"></div>
+
+    <main class="content">
+      <section class="view active" id="view-overview"></section>
+      <section class="view" id="view-table"></section>
+      <section class="view" id="view-bookings"></section>
+      <section class="view" id="view-voyages"></section>
+      <section class="view" id="view-pivot"></section>
+      <section class="view" id="view-sources"></section>
+    </main>
+  </div>
+
+  <!-- ───────── Filter panel ───────── -->
+  <aside class="filters" id="filters">
+    <div class="filters-head">
+      <b>Filters</b>
+      <div>
+        <button class="link" id="clearFilters">Clear all</button>
+        <button class="icon-btn" id="closeFilters" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>
+    </div>
+    <div class="filters-body" id="filtersBody"></div>
+  </aside>
+</div>
+
+<!-- ───────── Detail drawer ───────── -->
+<div class="drawer-scrim" id="drawerScrim"></div>
+<aside class="drawer" id="drawer">
+  <div class="drawer-head">
+    <div id="drawerTitle"></div>
+    <button class="icon-btn" id="closeDrawer" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+</aside>
+
+<div class="toast" id="toast"></div>
+<input type="file" id="fileInput" accept=".csv,.tsv,.txt,.xlsx,.xls,.xlsm,.ods" hidden>
+
+<script src="vendor/papaparse.min.js"></script>
+<script src="vendor/xlsx.full.min.js"></script>
+<script src="vendor/chart.umd.min.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
